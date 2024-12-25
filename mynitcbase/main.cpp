@@ -4,10 +4,38 @@
 #include "FrontendInterface/FrontendInterface.h"
 #include <iostream>
 
-// Stage-2 + Exercise Q1
+// Stage-2 : Exercise Q2
+void updateAttr(const char* relName,const char* attrName,const char* newAttrName){
+  int blockNum = ATTRCAT_BLOCK;
+  while(true){
+    RecBuffer attrCatBuffer(blockNum);
+    HeadInfo attrCatHeader;
+    attrCatBuffer.getHeader(&attrCatHeader);
+    for(int i=0;i<attrCatHeader.numEntries;i++){
+      Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
+      attrCatBuffer.getRecord(attrCatRecord,i);
+      if(!strcmp(attrCatRecord[ATTRCAT_REL_NAME_INDEX].sVal,relName) && !strcmp(attrCatRecord[ATTRCAT_ATTR_NAME_INDEX].sVal,attrName)){
+        unsigned char buffer[BLOCK_SIZE];
+        Disk::readBlock(buffer,blockNum);
+        int recordSize = ATTRCAT_NO_ATTRS * ATTR_SIZE;
+        int offset = HEADER_SIZE + SLOTMAP_SIZE_RELCAT_ATTRCAT + recordSize*i + 16;
+        memcpy(buffer+offset,newAttrName,16);
+        Disk::writeBlock(buffer,blockNum);
+        break;
+      }
+    }
+    if(attrCatHeader.rblock != -1)
+      blockNum = attrCatHeader.rblock;
+    else  break;
+  }
+}
+
 int main(int argc, char *argv[]) {
   Disk disk_run;
 
+  //updateAttr("Students","Class","Batch"); // Exer. Q2 caller
+
+  // Stage-2 + Exer. Q1 :-
   // create object for the relation catalog
   RecBuffer relCatBuffer(RELCAT_BLOCK);
 
