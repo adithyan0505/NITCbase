@@ -4,11 +4,25 @@
 #include "FrontendInterface/FrontendInterface.h"
 #include <iostream>
 
+// Stage-1 Exercise-Q1 :
 int main(int argc, char *argv[]) {
-  /* Initialize the Run Copy of Disk */
+  // Initialize the Run Copy of Disk
   Disk disk_run;
-  // StaticBuffer buffer;
-  // OpenRelTable cache;
+  
+  for(int i=0;i<3;i++){
+    unsigned char buffer[BLOCK_SIZE];
+    Disk::readBlock(buffer,i);
+    for(int x: buffer)
+      printf("%d ",x);
+    std::cout << std::endl;
+  }
+  return 0;
+}
+
+/* Stage-1 :
+int main(int argc, char *argv[]) {
+  // Initialize the Run Copy of Disk
+  Disk disk_run;
 
   unsigned char buffer[BLOCK_SIZE];
   Disk::readBlock(buffer,7000);
@@ -24,5 +38,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 
-  //return FrontendInterface::handleFrontend(argc, argv);
-}
+} */
