@@ -32,6 +32,7 @@ void updateAttr(const char* relName,const char* attrName,const char* newAttrName
 
 int main(int argc, char *argv[]) {
   Disk disk_run;
+  StaticBuffer buffer;
 
   //updateAttr("Students","Class","Batch"); // Exer. Q2 caller
 
@@ -89,7 +90,7 @@ int main(int argc, char *argv[]) {
   // Initialize the Run Copy of Disk
   Disk disk_run;
   
-  for(int i=0;i<3;i++){
+  for(int i=0;i<=3;i++){
     unsigned char buffer[BLOCK_SIZE];
     Disk::readBlock(buffer,i);
     for(int x: buffer)
