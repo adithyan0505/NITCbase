@@ -18,7 +18,7 @@ subsequent stages, we will implement the write-back functionality here.
 StaticBuffer::~StaticBuffer() {}
 
 int StaticBuffer::getFreeBuffer(int blockNum){
-    if(blockNum < 0 || blockNum > DISK_BLOCKS-1){
+    if(blockNum < 0 || blockNum >= DISK_BLOCKS){
         return E_OUTOFBOUND;
     }
     int allocatedBuffer;
