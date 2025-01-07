@@ -10,7 +10,7 @@ int main(int argc, char *argv[]){
   StaticBuffer buffer;
   OpenRelTable cache;
 
-  for(int i=0;i<=1;i++) //(i.e RELCAT_RELID and ATTRCAT_RELID)
+  for(int i=0;i<=2;i++) //(i.e RELCAT_RELID and ATTRCAT_RELID) + (Student RELID - Exer. Q1)
   {
     RelCatEntry relCatBuf;
     int ret = RelCacheTable::getRelCatEntry(i,&relCatBuf);
