@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 
+// Stage-2 :
 BlockBuffer::BlockBuffer(int blockNum) {
   // initialise this.blockNum with the argument
   this->blockNum = blockNum;
@@ -77,4 +78,38 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr){
   *buffPtr = StaticBuffer::blocks[bufferNum]; //points to req. block stored in buffer
 
   return SUCCESS;
+}
+
+// Stage-4 :
+int RecBuffer::getSlotMap(unsigned char *slotMap){
+  unsigned char *bufferPtr;
+
+  int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+  if(ret != SUCCESS){
+    return ret;
+  }
+  struct HeadInfo head;
+  this->getHeader(&head);
+
+  int slotCount = head.numSlots;
+  unsigned char *slotMapInBuffer = bufferPtr + HEADER_SIZE;
+
+  for(int i=0;i<slotCount;i++){
+    slotMap[i] = slotMapInBuffer[i];
+  }
+
+  return SUCCESS;
+}
+
+int compareAttrs(union Attribute attr1, union Attribute attr2, int attrType){
+  double diff;
+  if(attrType == STRING){
+    diff = strcmp(attr1.sVal, attr2.sVal);
+  }else{
+    diff = attr1.nVal - attr2.nVal;
+  }
+
+  if(diff > 0) return 1;
+  if(diff < 0) return -1;
+  return 0; // diff==0
 }

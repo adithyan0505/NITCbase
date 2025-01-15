@@ -1,6 +1,7 @@
 #include "RelCacheTable.h"
 #include <cstring>
 
+// Stage-3 : 
 RelCacheEntry* RelCacheTable::relCache[MAX_OPEN];
 
 /*
@@ -33,4 +34,34 @@ void RelCacheTable::recordToRelCatEntry(union Attribute record[RELCAT_NO_ATTRS],
     relCatEntry->numSlotsPerBlk = record[RELCAT_NO_SLOTS_PER_BLOCK_INDEX].nVal;
     relCatEntry->firstBlk = record[RELCAT_FIRST_BLOCK_INDEX].nVal;
     relCatEntry->lastBlk = record[RELCAT_LAST_BLOCK_INDEX].nVal;
+}
+
+// Stage-4 : 
+int RelCacheTable::getSearchIndex(int relId, RecId* searchIndex){
+    if(relId < 0 || relId >= MAX_OPEN){
+        return E_OUTOFBOUND;
+    }
+    if(relCache[relId] == nullptr){
+        return E_RELNOTOPEN;
+    }
+    *searchIndex = relCache[relId]->searchIndex;
+    return SUCCESS;
+}
+
+int RelCacheTable::setSearchIndex(int relId, RecId* searchIndex){
+    if(relId < 0 || relId >= MAX_OPEN){
+        return E_OUTOFBOUND;
+    }
+    if(relCache[relId] == nullptr){
+        return E_RELNOTOPEN;
+    }
+    relCache[relId]->searchIndex = *searchIndex;
+    return SUCCESS;
+}
+
+int RelCacheTable::resetSearchIndex(int relId){
+    RecId searchIndex;
+    searchIndex.block = -1;
+    searchIndex.slot = -1;
+    return RelCacheTable::setSearchIndex(relId, &searchIndex);
 }

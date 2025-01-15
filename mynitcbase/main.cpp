@@ -4,34 +4,42 @@
 #include "FrontendInterface/FrontendInterface.h"
 #include <iostream>
 
-// Stage-3 : Setting up Disk Buffer and Caches
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
   Disk disk_run;
   StaticBuffer buffer;
   OpenRelTable cache;
 
-  for(int i=0;i<=2;i++) //(i.e RELCAT_RELID and ATTRCAT_RELID) + (Student RELID - Exer. Q1)
-  {
-    RelCatEntry relCatBuf;
-    int ret = RelCacheTable::getRelCatEntry(i,&relCatBuf);
-    if(ret != SUCCESS){
-      return ret;
-    }
-    printf("Relation: %s\n", relCatBuf.relName);
-
-    for(int j = 0;j<relCatBuf.numAttrs;j++){
-      AttrCatEntry attrCatBuf;
-      int ret = AttrCacheTable::getAttrCatEntry(i,j,&attrCatBuf);
-      if(ret != SUCCESS){
-        return ret;
-      }
-      const char *attrType = attrCatBuf.attrType == NUMBER ? "NUM" : "STR";
-      printf("  %s: %s\n", attrCatBuf.attrName, attrType);
-    }
-    printf("\n");
-  }
-  return 0;
+  return FrontendInterface::handleFrontend(argc, argv);
 }
+
+// // Stage-3 : Setting up Disk Buffer and Caches
+// int main(int argc, char *argv[]){
+//   Disk disk_run;
+//   StaticBuffer buffer;
+//   OpenRelTable cache;
+
+//   for(int i=0;i<=2;i++) //(i.e RELCAT_RELID and ATTRCAT_RELID) + (Student RELID - Exer. Q1)
+//   {
+//     RelCatEntry relCatBuf;
+//     int ret = RelCacheTable::getRelCatEntry(i,&relCatBuf);
+//     if(ret != SUCCESS){
+//       return ret;
+//     }
+//     printf("Relation: %s\n", relCatBuf.relName);
+
+//     for(int j = 0;j<relCatBuf.numAttrs;j++){
+//       AttrCatEntry attrCatBuf;
+//       int ret = AttrCacheTable::getAttrCatEntry(i,j,&attrCatBuf);
+//       if(ret != SUCCESS){
+//         return ret;
+//       }
+//       const char *attrType = attrCatBuf.attrType == NUMBER ? "NUM" : "STR";
+//       printf("  %s: %s\n", attrCatBuf.attrName, attrType);
+//     }
+//     printf("\n");
+//   }
+//   return 0;
+// }
 
 // // Stage-2 : Exercise Q2
 // void updateAttr(const char* relName,const char* attrName,const char* newAttrName){
