@@ -83,35 +83,35 @@ OpenRelTable::OpenRelTable(){
    }
    prevAttr->next = nullptr;
 
-   /*** (Stage-3 : Exer. Q1) Modify to cache and print relation catalog & attribute catalog entries for the Student relation ***/
+  // /*** (Stage-3 : Exer. Q1) Modify to cache and print relation catalog & attribute catalog entries for the Student relation ***/
 
-   // populating relation cache
-   relCatBlock.getRecord(relCatRecord,2); // relation catalog slotNum for Student relation: 2
-   RelCacheTable::recordToRelCatEntry(relCatRecord,&relCacheEntry.relCatEntry);
-   relCacheEntry.recId.block = RELCAT_BLOCK;
-   relCacheEntry.recId.slot = 2;
+  // // populating relation cache
+  // relCatBlock.getRecord(relCatRecord,2); // relation catalog slotNum for Student relation: 2
+  // RelCacheTable::recordToRelCatEntry(relCatRecord,&relCacheEntry.relCatEntry);
+  // relCacheEntry.recId.block = RELCAT_BLOCK;
+  // relCacheEntry.recId.slot = 2;
 
-   RelCacheTable::relCache[2] = (RelCacheEntry*)malloc(sizeof(RelCacheEntry));
-   *(RelCacheTable::relCache[2]) = relCacheEntry;
+  // RelCacheTable::relCache[2] = (RelCacheEntry*)malloc(sizeof(RelCacheEntry));
+  // *(RelCacheTable::relCache[2]) = relCacheEntry;
 
-   // populating attrtibute cache
-   prevAttr = nullptr;
-   for(int i = 12 ; i < 12+relCatRecord[RELCAT_NO_ATTRIBUTES_INDEX].nVal; i++){
-      attrCatBlock.getRecord(attrCatRecord,i);
-      AttrCacheEntry attrCacheEntry;
-      AttrCacheTable::recordToAttrCatEntry(attrCatRecord,&attrCacheEntry.attrCatEntry);
-      attrCacheEntry.recId.block = ATTRCAT_BLOCK;
-      attrCacheEntry.recId.slot = i;
-      if(prevAttr != nullptr){
-         prevAttr->next = (AttrCacheEntry*)malloc(sizeof(AttrCacheEntry));
-         prevAttr = prevAttr->next;
-      }else{
-         AttrCacheTable::attrCache[2] = (AttrCacheEntry*)malloc(sizeof(AttrCacheEntry));
-         prevAttr = AttrCacheTable::attrCache[2];
-      }
-      *prevAttr = attrCacheEntry;
-   }
-   prevAttr->next = nullptr;
+  // // populating attrtibute cache
+  // prevAttr = nullptr;
+  // for(int i = 12 ; i < 12+relCatRecord[RELCAT_NO_ATTRIBUTES_INDEX].nVal; i++){
+  //    attrCatBlock.getRecord(attrCatRecord,i);
+  //    AttrCacheEntry attrCacheEntry;
+  //    AttrCacheTable::recordToAttrCatEntry(attrCatRecord,&attrCacheEntry.attrCatEntry);
+  //    attrCacheEntry.recId.block = ATTRCAT_BLOCK;
+  //    attrCacheEntry.recId.slot = i;
+  //    if(prevAttr != nullptr){
+  //       prevAttr->next = (AttrCacheEntry*)malloc(sizeof(AttrCacheEntry));
+  //       prevAttr = prevAttr->next;
+  //    }else{
+  //       AttrCacheTable::attrCache[2] = (AttrCacheEntry*)malloc(sizeof(AttrCacheEntry));
+  //       prevAttr = AttrCacheTable::attrCache[2];
+  //    }
+  //    *prevAttr = attrCacheEntry;
+  // }
+  // prevAttr->next = nullptr;
 }
 
 OpenRelTable::~OpenRelTable(){
@@ -133,15 +133,15 @@ OpenRelTable::~OpenRelTable(){
       AttrCacheTable::attrCache[ATTRCAT_RELID] = nextAttr;
    }
 
-   // free memory allocated in cache for Student relation (Stage-3 : Exer. Q1)
-   free(RelCacheTable::relCache[2]);
+  // // free memory allocated in cache for Student relation (Stage-3 : Exer. Q1)
+  // free(RelCacheTable::relCache[2]);
 
-   nextAttr = AttrCacheTable::attrCache[2];
-   while(nextAttr != nullptr){
-      nextAttr = nextAttr->next;
-      free(AttrCacheTable::attrCache[2]);
-      AttrCacheTable::attrCache[2] = nextAttr;
-   }
+  // nextAttr = AttrCacheTable::attrCache[2];
+  // while(nextAttr != nullptr){
+  //    nextAttr = nextAttr->next;
+  //    free(AttrCacheTable::attrCache[2]);
+  //    AttrCacheTable::attrCache[2] = nextAttr;
+  // }
 }
 
 // Stage-4 :
@@ -153,6 +153,6 @@ and open the appropriate one.
 int OpenRelTable::getRelId(char relName[ATTR_SIZE]){
    if(strcmp(relName, RELCAT_RELNAME)==0) return RELCAT_RELID;
    if(strcmp(relName, ATTRCAT_RELNAME)==0) return ATTRCAT_RELID;
-   if(strcmp(relName, "Students") == 0) return 2;
+   // if(strcmp(relName, "Students") == 0) return 2;
    return E_RELNOTOPEN;
 }
