@@ -79,3 +79,42 @@ RecId BlockAccess::linearSearch(int relId, char attrName[ATTR_SIZE], union Attri
     }
     return RecId{-1, -1};
 }
+
+int BlockAccess::renameRelation(char *oldName, char *newName) {
+    RelCacheTable::resetSearchIndex(RELCAT_RELID);
+    Attribute newRelName;
+    strcpy(newRelName.sVal, newName);
+    char relName_attr[ATTR_SIZE];
+    strcpy(relName_attr, RELCAT_ATTR_RELNAME);
+    RecId searchRes = BlockAccess::linearSearch(RELCAT_RELID, relName_attr, newRelName, EQ);
+    if (searchRes.block != -1 && searchRes.slot != -1) {
+        return E_RELEXIST; // relation with relname newName exists already
+    }
+
+    Attribute oldRelName;
+    strcpy(oldRelName.sVal, oldName);
+    searchRes = BlockAccess::linearSearch(RELCAT_RELID, relName_attr, oldRelName, EQ);
+    if (searchRes.block == -1 && searchRes.slot == -1) {
+        return E_RELNOTEXIST; // relation with relname oldName does not exist
+    }
+
+    // update relName in relation catalog
+    RecBuffer relCatBlock(RELCAT_BLOCK);
+    Attribute record[RELCAT_NO_ATTRS];
+    relCatBlock.getRecord(record, searchRes.slot);
+    strcpy(record[RELCAT_REL_NAME_INDEX].sVal, newName);
+    relCatBlock.setRecord(record, searchRes.slot);
+
+    // update relName in respective entries of attribute catalog from oldName to newName
+    RelCacheTable::resetSearchIndex(ATTRCAT_RELID);
+    strcpy(relName_attr, ATTRCAT_ATTR_RELNAME);
+    for (int i = 0; i < record[RELCAT_NO_ATTRIBUTES_INDEX].nVal; i++) {
+        searchRes = BlockAccess::linearSearch(ATTRCAT_RELID, relName_attr, oldRelName, EQ);
+        RecBuffer attrCatBlock(searchRes.block);
+        attrCatBlock.getRecord(record, searchRes.slot);
+        strcpy(record[ATTRCAT_REL_NAME_INDEX].sVal, newName);
+        attrCatBlock.setRecord(record, searchRes.slot);
+    }
+
+    return SUCCESS;
+}
