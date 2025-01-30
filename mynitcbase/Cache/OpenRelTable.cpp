@@ -131,6 +131,11 @@ OpenRelTable::~OpenRelTable() {
         free(AttrCacheTable::attrCache[ATTRCAT_RELID]);
         AttrCacheTable::attrCache[ATTRCAT_RELID] = nextAttr;
     }
+
+    tableMetaInfo[RELCAT_RELID].free = true;
+    tableMetaInfo[ATTRCAT_RELID].free = true;
+    strcpy(tableMetaInfo[RELCAT_RELID].relName, "");
+    strcpy(tableMetaInfo[ATTRCAT_RELID].relName, "");
 }
 
 int OpenRelTable::getFreeOpenRelTableEntry() {
@@ -144,8 +149,10 @@ int OpenRelTable::getFreeOpenRelTableEntry() {
 
 int OpenRelTable::getRelId(char relName[ATTR_SIZE]) {
     for (int i = 0; i < MAX_OPEN; i++) {
-        if (strcmp(tableMetaInfo[i].relName, relName) == 0) {
-            return i;
+        if (tableMetaInfo[i].free == false) {
+            if (strcmp(tableMetaInfo[i].relName, relName) == 0) {
+                return i;
+            }
         }
     }
     return E_RELNOTOPEN;
@@ -219,7 +226,7 @@ int OpenRelTable::closeRel(int relId) {
     if (relId == RELCAT_RELID || relId == ATTRCAT_RELID) {
         return E_NOTPERMITTED;
     }
-    if (relId < 0 && relId >= MAX_OPEN) {
+    if (relId < 0 || relId >= MAX_OPEN) {
         return E_OUTOFBOUND;
     }
     if (tableMetaInfo[relId].free) {
@@ -237,6 +244,7 @@ int OpenRelTable::closeRel(int relId) {
     }
 
     tableMetaInfo[relId].free = true;
+    strcpy(tableMetaInfo[relId].relName, "");
 
     return SUCCESS;
 }

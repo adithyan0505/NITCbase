@@ -1,50 +1,89 @@
 #include "StaticBuffer.h"
+#include <algorithm>
+#include <climits>
 
 unsigned char StaticBuffer::blocks[BUFFER_CAPACITY][BLOCK_SIZE];
 struct BufferMetaInfo StaticBuffer::metainfo[BUFFER_CAPACITY];
 
-StaticBuffer::StaticBuffer(){
+StaticBuffer::StaticBuffer() {
     // initialise all blocks as free
-    for(int i=0;i<BUFFER_CAPACITY;i++){
+    for (int i = 0; i < BUFFER_CAPACITY; i++) {
         metainfo[i].free = true;
+        metainfo[i].blockNum = -1;
+        metainfo[i].dirty = false;
+        metainfo[i].timeStamp = -1;
     }
 }
 
-/*
-At this stage, we are not writing back from the buffer to the disk since we are
-not modifying the buffer. So, we will define an empty destructor for now. In
-subsequent stages, we will implement the write-back functionality here.
-*/
-StaticBuffer::~StaticBuffer() {}
+StaticBuffer::~StaticBuffer() {
+    for (int i = 0; i < BUFFER_CAPACITY; i++) {
+        if (!metainfo[i].free && metainfo[i].dirty) {
+            Disk::writeBlock(blocks[i], metainfo[i].blockNum);
+        }
+    }
+}
 
-int StaticBuffer::getFreeBuffer(int blockNum){
-    if(blockNum < 0 || blockNum >= DISK_BLOCKS){
+int StaticBuffer::getFreeBuffer(int blockNum) {
+    if (blockNum < 0 || blockNum >= DISK_BLOCKS) {
         return E_OUTOFBOUND;
     }
-    int allocatedBuffer;
 
-    for(int i=0;i<BUFFER_CAPACITY;i++){
-        if(metainfo[i].free){
-            allocatedBuffer = i;
+    int maxTimeStamp = -1; // to store the highest Time Stamp
+    int maxTimeIndex = -1; // to store Least-Recently-Used bufferNum (index)
+    for (int i = 0; i < BUFFER_CAPACITY; i++) {
+        if (!metainfo[i].free) {
+            metainfo[i].timeStamp += 1;
+            if (metainfo[i].timeStamp > maxTimeStamp) {
+                maxTimeIndex = i;
+                maxTimeStamp = metainfo[i].timeStamp;
+            }
+        }
+    }
+
+    int bufferNum = -1;
+
+    for (int i = 0; i < BUFFER_CAPACITY; i++) {
+        if (metainfo[i].free) {
+            bufferNum = i;
             break;
         }
     }
-    metainfo[allocatedBuffer].free = false;
-    metainfo[allocatedBuffer].blockNum = blockNum;
 
-    return allocatedBuffer;
+    // if buffer is full - replacement according to LRU policy
+    if (bufferNum == -1) {
+        if (metainfo[maxTimeIndex].dirty) {
+            Disk::writeBlock(blocks[maxTimeIndex], metainfo[maxTimeIndex].blockNum);
+        }
+        bufferNum = maxTimeIndex;
+    }
+
+    metainfo[bufferNum].free = false;
+    metainfo[bufferNum].blockNum = blockNum;
+    metainfo[bufferNum].dirty = false;
+    metainfo[bufferNum].timeStamp = 0;
+
+    return bufferNum;
 }
 
-int StaticBuffer::getBufferNum(int blockNum){
-    if(blockNum < 0 || blockNum >= DISK_BLOCKS){
+int StaticBuffer::getBufferNum(int blockNum) {
+    if (blockNum < 0 || blockNum >= DISK_BLOCKS) {
         return E_OUTOFBOUND;
     }
 
-    for(int i=0;i<BUFFER_CAPACITY;i++){
-        if(metainfo[i].blockNum == blockNum){
+    for (int i = 0; i < BUFFER_CAPACITY; i++) {
+        if (metainfo[i].blockNum == blockNum) {
             return i;
         }
     }
 
     return E_BLOCKNOTINBUFFER;
+}
+
+int StaticBuffer::setDirtyBit(int blockNum) {
+    int bufferNum = StaticBuffer::getBufferNum(blockNum);
+    if (bufferNum < 0) {
+        return bufferNum; // Error codes are returned (E_BLOCKNOTINBUFFER / E_OUTOFBOUND)
+    }
+    metainfo[bufferNum].dirty = true; // bufferNum is valid hence, setting dirty bit
+    return SUCCESS;
 }

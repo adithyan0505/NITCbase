@@ -28,13 +28,29 @@ int Schema::closeRel(char *relName) {
     return OpenRelTable::closeRel(relId);
 }
 
+// Stage-6 :
+
 int Schema::renameRel(char *oldRelName, char *newRelName) {
     if (!strcmp(oldRelName, RELCAT_RELNAME) || !strcmp(oldRelName, ATTRCAT_RELNAME)) {
+        return E_NOTPERMITTED;
+    }
+    if (!strcmp(newRelName, RELCAT_RELNAME) || !strcmp(newRelName, ATTRCAT_RELNAME)) {
         return E_NOTPERMITTED;
     }
     if (OpenRelTable::getRelId(oldRelName) != E_RELNOTOPEN) {
         return E_RELOPEN;
     }
     int retVal = BlockAccess::renameRelation(oldRelName, newRelName);
+    return retVal;
+}
+
+int Schema::renameAttr(char *relName, char *oldAttrName, char *newAttrName) {
+    if (!strcmp(relName, RELCAT_RELNAME) || !strcmp(relName, ATTRCAT_RELNAME)) {
+        return E_NOTPERMITTED;
+    }
+    if (OpenRelTable::getRelId(relName) != E_RELNOTOPEN) {
+        return E_RELOPEN;
+    }
+    int retVal = BlockAccess::renameAttribute(relName, oldAttrName, newAttrName);
     return retVal;
 }
