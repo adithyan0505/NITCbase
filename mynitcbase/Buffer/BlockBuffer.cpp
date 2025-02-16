@@ -79,9 +79,9 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr) {
         for (int i = 0; i < BUFFER_CAPACITY; i++) {
             if (!StaticBuffer::metainfo[i].free) {
                 StaticBuffer::metainfo[i].timeStamp += 1;
-            }
-            StaticBuffer::metainfo[bufferNum].timeStamp = 0;
+            }  
         }
+        StaticBuffer::metainfo[bufferNum].timeStamp = 0;
     }
     *buffPtr = StaticBuffer::blocks[bufferNum]; // points to req. block stored in buffer
 
