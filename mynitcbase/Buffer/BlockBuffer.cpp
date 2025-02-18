@@ -67,12 +67,12 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr) {
     // check whether the block is already present in the buffer using StaticBuffer.getBufferNum()
     int bufferNum = StaticBuffer::getBufferNum(this->blockNum);
 
+    if (bufferNum == E_OUTOFBOUND) {
+        return E_OUTOFBOUND;
+    }
+
     if (bufferNum == E_BLOCKNOTINBUFFER) {
         bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
-
-        if (bufferNum == E_OUTOFBOUND) {
-            return E_OUTOFBOUND;
-        }
         // reading block at this.blockNum from disk and storing into buffer location pointer by bufferNum
         Disk::readBlock(StaticBuffer::blocks[bufferNum], this->blockNum);
     } else {
@@ -80,8 +80,8 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr) {
             if (!StaticBuffer::metainfo[i].free) {
                 StaticBuffer::metainfo[i].timeStamp += 1;
             }
-            StaticBuffer::metainfo[bufferNum].timeStamp = 0;
         }
+        StaticBuffer::metainfo[bufferNum].timeStamp = 0;
     }
     *buffPtr = StaticBuffer::blocks[bufferNum]; // points to req. block stored in buffer
 
@@ -152,3 +152,105 @@ int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
 
     return SUCCESS;
 }
+
+// Stage-7 :
+
+int BlockBuffer::setHeader(struct HeadInfo *head) {
+    unsigned char *bufferPtr;
+    int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    // cast bufferPtr to type HeadInfo*
+    struct HeadInfo *bufferHeader = (struct HeadInfo *)bufferPtr;
+
+    // copy the fields of the HeadInfo pointed to by head (except reserved) to
+    // the header of the block (pointed to by bufferHeader)
+    bufferHeader[0].blockType = head->blockType;
+    bufferHeader[0].pblock = head->pblock;
+    bufferHeader[0].lblock = head->lblock;
+    bufferHeader[0].rblock = head->rblock;
+    bufferHeader[0].numAttrs = head->numAttrs;
+    bufferHeader[0].numEntries = head->numEntries;
+    bufferHeader[0].numSlots = head->numSlots;
+
+    ret = StaticBuffer::setDirtyBit(this->blockNum);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    return SUCCESS;
+}
+
+int BlockBuffer::setBlockType(int blockType) {
+    unsigned char *bufferPtr;
+    int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+    ((int32_t *)bufferPtr)[0] = blockType;
+
+    StaticBuffer::blockAllocMap[this->blockNum] = blockType;
+
+    ret = StaticBuffer::setDirtyBit(this->blockNum);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    return SUCCESS;
+}
+
+int BlockBuffer::getFreeBlock(int blockType) {
+    // iterate through BMAP to find a free block
+    int blockNum = -1;
+    for (int i = 4; i < DISK_BLOCKS; i++) {
+        if (StaticBuffer::blockAllocMap[i] == UNUSED_BLK) {
+            blockNum = i;
+            break;
+        }
+    }
+    if (blockNum == -1) {
+        return E_DISKFULL;
+    }
+    // set the object's blockNum to the block number of the free block
+    this->blockNum = blockNum;
+
+    // initialise the header and setting the header
+    struct HeadInfo head;
+    head.pblock = -1, head.lblock = -1, head.rblock = -1, head.numSlots = 0, head.numEntries = 0, head.numAttrs = 0;
+    BlockBuffer::setHeader(&head);
+
+    // update block type of the block to input blockType
+    BlockBuffer::setBlockType(blockType);
+
+    return blockNum;
+}
+
+// BlockBuffer class - constructor 1
+// (called if a new block of the input type is to be allocated in the disk)
+// (If the block has already been initialised as a record or index block, use constructor 2)
+
+BlockBuffer::BlockBuffer(char blockType) {
+    int block_type;
+    if (blockType == 'R')
+        block_type = REC;
+    else if (blockType == 'I')
+        block_type = IND_INTERNAL;
+    else
+        block_type = IND_LEAF;
+    int blockNum = BlockBuffer::getFreeBlock(block_type);
+    // blockNum will contain either a valid block number or error code
+    // returned by getFreeBlock()
+
+    this->blockNum = blockNum;
+    // (The caller must check if the constructor allocatted block successfully
+    // by checking the value of block number field.)
+}
+
+// RecBuffer class - constructor 1
+// (called if a new record block is to be allocated in the disk)
+// (if the block has already been initialised as a record block on the disk, use constructor 2)
+
+RecBuffer::RecBuffer() : BlockBuffer('R') {}
+// call parent non-default constructor with 'R' denoting record block.
