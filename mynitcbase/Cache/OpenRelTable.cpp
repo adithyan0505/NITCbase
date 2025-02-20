@@ -233,9 +233,23 @@ int OpenRelTable::closeRel(int relId) {
         return E_RELNOTOPEN;
     }
 
+    // if cache was modified - write back relCatEntry as a record
+    // to Relation Catalog Block in buffer
+    if (RelCacheTable::relCache[relId]->dirty == true) {
+        RelCatEntry relCatBuf;
+        RelCacheTable::getRelCatEntry(relId, &relCatBuf);
+
+        union Attribute record[relCatBuf.numAttrs];
+        RelCacheTable::relCatEntryToRecord(&relCatBuf, record);
+
+        RecBuffer relCatBlock(RelCacheTable::relCache[relId]->recId.block);
+        relCatBlock.setRecord(record, RelCacheTable::relCache[relId]->recId.slot);
+    }
+    // Releasing the Relation Cache entry of the relation
     free(RelCacheTable::relCache[relId]);
     RelCacheTable::relCache[relId] = nullptr;
 
+    // Releasing the Attribute Cache entry(s) of the relation
     AttrCacheEntry *attrNode = AttrCacheTable::attrCache[relId];
     while (attrNode != nullptr) {
         attrNode = attrNode->next;
