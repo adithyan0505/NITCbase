@@ -84,5 +84,11 @@ int RelCacheTable::setRelCatEntry(int relId, RelCatEntry *relCatBuf) {
 }
 
 void RelCacheTable::relCatEntryToRecord(RelCatEntry *relCatEntry, union Attribute record[RELCAT_NO_ATTRS]) {
-    memcpy(record, relCatEntry, sizeof(RelCatEntry));
+    // memcpy(record, relCatEntry, sizeof(RelCatEntry));
+    strcpy(record[RELCAT_REL_NAME_INDEX].sVal, relCatEntry->relName);
+    record[RELCAT_FIRST_BLOCK_INDEX].nVal = relCatEntry->firstBlk;
+    record[RELCAT_LAST_BLOCK_INDEX].nVal = relCatEntry->lastBlk;
+    record[RELCAT_NO_ATTRIBUTES_INDEX].nVal = relCatEntry->numAttrs;
+    record[RELCAT_NO_RECORDS_INDEX].nVal = relCatEntry->numRecs;
+    record[RELCAT_NO_SLOTS_PER_BLOCK_INDEX].nVal = relCatEntry->numSlotsPerBlk;
 }

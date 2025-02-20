@@ -254,3 +254,30 @@ BlockBuffer::BlockBuffer(char blockType) {
 
 RecBuffer::RecBuffer() : BlockBuffer('R') {}
 // call parent non-default constructor with 'R' denoting record block.
+
+int RecBuffer::setSlotMap(unsigned char *slotMap) {
+    unsigned char *bufferPtr;
+    int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    HeadInfo head;
+    this->getHeader(&head);
+    int numSlots = head.numSlots;
+
+    // copy contents of argument 'slotMap' into buffer replacing existing slotmap
+    memcpy(bufferPtr + HEADER_SIZE, slotMap, numSlots);
+
+    ret = StaticBuffer::setDirtyBit(this->blockNum);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    return SUCCESS;
+}
+
+int BlockBuffer::getBlockNum() {
+    // Defined to access the protected member field blockNum of the class
+    return this->blockNum;
+}
