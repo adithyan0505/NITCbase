@@ -112,6 +112,32 @@ OpenRelTable::~OpenRelTable() {
         }
     }
 
+    // stage-8
+    // (write-back of Attribute Catalog - numRecs (num of attrs) change when creating new relation)
+    if (RelCacheTable::relCache[ATTRCAT_RELID]->dirty) {
+        RelCatEntry relCatBuf;
+        RelCacheTable::getRelCatEntry(ATTRCAT_RELID, &relCatBuf);
+        Attribute record[RELCAT_NO_ATTRS];
+        RelCacheTable::relCatEntryToRecord(&relCatBuf, record);
+
+        RecId recId = RelCacheTable::relCache[ATTRCAT_RELID]->recId;
+        RecBuffer relCatBlock(recId.block);
+        relCatBlock.setRecord(record, recId.slot);
+    }
+
+    // stage-8
+    // (write-back of Relation Catalog - numRecs (num of relations) change when creating new relation)
+    if (RelCacheTable::relCache[RELCAT_RELID]->dirty) {
+        RelCatEntry relCatBuf;
+        RelCacheTable::getRelCatEntry(RELCAT_RELID, &relCatBuf);
+        Attribute record[RELCAT_NO_ATTRS];
+        RelCacheTable::relCatEntryToRecord(&relCatBuf, record);
+
+        RecId recId = RelCacheTable::relCache[RELCAT_RELID]->recId;
+        RecBuffer relCatBlock(recId.block);
+        relCatBlock.setRecord(record, recId.slot);
+    }
+
     // free memory allocated to rel-id = 0 and rel-id = 1 in the caches
     free(RelCacheTable::relCache[RELCAT_RELID]);
     free(RelCacheTable::relCache[ATTRCAT_RELID]);
