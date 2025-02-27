@@ -341,7 +341,7 @@ int BlockAccess::deleteRelation(char *relName) {
             HeadInfo lhead;
             lblock.getHeader(&lhead);
             lhead.rblock = head.rblock;
-            lblock.setHeader(&head);
+            lblock.setHeader(&lhead);
 
             if (head.rblock != -1) {
                 RecBuffer rblock(head.rblock);
