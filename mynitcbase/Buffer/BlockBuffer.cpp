@@ -29,6 +29,8 @@ int BlockBuffer::getHeader(struct HeadInfo *head) {
     memcpy(&head->numAttrs, bufferPtr + 20, 4);
     memcpy(&head->rblock, bufferPtr + 12, 4);
     memcpy(&head->lblock, bufferPtr + 8, 4);
+    memcpy(&head->blockType,bufferPtr, 4);
+    memcpy(&head->pblock, bufferPtr+4, 4);
 
     return SUCCESS;
 }
@@ -280,4 +282,21 @@ int RecBuffer::setSlotMap(unsigned char *slotMap) {
 int BlockBuffer::getBlockNum() {
     // Defined to access the protected member field blockNum of the class
     return this->blockNum;
+}
+
+// Stage-8 :
+
+void BlockBuffer::releaseBlock() {
+    if (this->blockNum == INVALID_BLOCKNUM) {
+        return;
+    }
+    int bufferNum = StaticBuffer::getBufferNum(this->blockNum);
+    // free buffer corresponding to the blockNum
+    if (bufferNum != E_BLOCKNOTINBUFFER) {
+        StaticBuffer::metainfo[bufferNum].free = true;
+    }
+    // free blockNum in disk
+    StaticBuffer::blockAllocMap[this->blockNum] = UNUSED_BLK;
+    // invalidating object's blockNum field
+    this->blockNum = INVALID_BLOCKNUM;
 }
