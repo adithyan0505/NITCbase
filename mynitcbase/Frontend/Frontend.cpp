@@ -55,8 +55,7 @@ int Frontend::select_attrlist_from_table(char relname_source[ATTR_SIZE],
                                          char relname_target[ATTR_SIZE],
                                          int attr_count,
                                          char attr_list[][ATTR_SIZE]) {
-    // Algebra::project
-    return SUCCESS;
+    return Algebra::project(relname_source, relname_target, attr_count, attr_list);
 }
 
 int Frontend::select_from_table_where(char relname_source[ATTR_SIZE],
@@ -72,8 +71,25 @@ int Frontend::select_attrlist_from_table_where(char relname_source[ATTR_SIZE],
                                                char attr_list[][ATTR_SIZE],
                                                char attribute[ATTR_SIZE],
                                                int op, char value[ATTR_SIZE]) {
-    // Algebra::select + Algebra::project??
-    return SUCCESS;
+    char tempRelName[ATTR_SIZE];
+    strcpy(tempRelName, TEMP);
+
+    int ret = Algebra::select(relname_source, tempRelName, attribute, op, value);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    ret = Schema::openRel(tempRelName);
+    if (ret != SUCCESS) {
+        Schema::deleteRel(tempRelName);
+        return ret;
+    }
+
+    ret = Algebra::project(tempRelName, relname_target, attr_count, attr_list);
+    Schema::closeRel(tempRelName);
+    Schema::deleteRel(tempRelName);
+
+    return ret;
 }
 
 int Frontend::select_from_join_where(char relname_source_one[ATTR_SIZE],

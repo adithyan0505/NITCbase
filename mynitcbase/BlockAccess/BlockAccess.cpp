@@ -194,6 +194,9 @@ int BlockAccess::insert(int relId, union Attribute *record) {
                 break;
             }
         }
+        if(rec_id.block != -1 && rec_id.slot != -1) {
+            break;
+        }
         prevBlockNum = blockNum;
         blockNum = head.rblock;
     }

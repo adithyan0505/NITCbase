@@ -177,3 +177,67 @@ int Algebra::project(char *srcRel, char *targetRel) {
 
     return SUCCESS;
 }
+
+// Project Specified Attributes
+int Algebra::project(char *srcRel, char *targetRel, int tar_nAttrs, char (*tar_Attrs)[16]) {
+    int srcRelId = OpenRelTable::getRelId(srcRel);
+    if (srcRelId == E_RELNOTOPEN) {
+        return E_RELNOTOPEN;
+    }
+
+    RelCatEntry relCatEntry;
+    RelCacheTable::getRelCatEntry(srcRelId, &relCatEntry);
+    int src_nAttrs = relCatEntry.numAttrs;
+
+    int attr_offset[tar_nAttrs];
+    int attr_types[tar_nAttrs];
+
+    /*** Checking if attributes of target are present in the source relation
+         and storing its offsets and types ***/
+
+    for (int i = 0; i < tar_nAttrs; i++) {
+        AttrCatEntry attrCatEntry;
+        int ret = AttrCacheTable::getAttrCatEntry(srcRelId, tar_Attrs[i], &attrCatEntry);
+        if (ret == E_ATTRNOTEXIST) {
+            return E_ATTRNOTEXIST;
+        }
+        attr_offset[i] = attrCatEntry.offset;
+        attr_types[i] = attrCatEntry.attrType;
+    }
+
+    /*** Creating and opening the target relation ***/
+    int ret = Schema::createRel(targetRel, tar_nAttrs, tar_Attrs, attr_types);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    ret = Schema::openRel(targetRel);
+    if (ret != SUCCESS) {
+        // Cache is full
+        Schema::deleteRel(targetRel);
+        return ret;
+    }
+    int targetRelId = OpenRelTable::getRelId(targetRel);
+
+    /*** Inserting projected records into the target relation ***/
+    RelCacheTable::resetSearchIndex(srcRelId);
+    Attribute record[src_nAttrs];
+
+    while (BlockAccess::project(srcRelId, record) == SUCCESS) {
+        Attribute proj_record[tar_nAttrs];
+
+        for (int i = 0; i < tar_nAttrs; i++) {
+            proj_record[i] = record[attr_offset[i]];
+        }
+        ret = BlockAccess::insert(targetRelId, proj_record);
+        if (ret != SUCCESS) {
+            // Disk is full
+            Schema::closeRel(targetRel);
+            Schema::deleteRel(targetRel);
+            return ret;
+        }
+    }
+    Schema::closeRel(targetRel);
+
+    return SUCCESS;
+}
