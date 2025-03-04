@@ -194,6 +194,9 @@ int BlockAccess::insert(int relId, union Attribute *record) {
                 break;
             }
         }
+        if(rec_id.block != -1 && rec_id.slot != -1) {
+            break;
+        }
         prevBlockNum = blockNum;
         blockNum = head.rblock;
     }
@@ -267,7 +270,6 @@ int BlockAccess::insert(int relId, union Attribute *record) {
 // this function will copy the result of the search to the `record` argument
 int BlockAccess::search(int relId, Attribute *record, char *attrName, Attribute attrVal, int op) {
     RecId recId;
-    RelCacheTable::resetSearchIndex(relId);
     recId = BlockAccess::linearSearch(relId, attrName, attrVal, op);
 
     if (recId.block == -1 && recId.slot == -1) {
@@ -384,6 +386,64 @@ int BlockAccess::deleteRelation(char *relName) {
     RelCacheTable::getRelCatEntry(ATTRCAT_RELID, &relCatBuf);
     relCatBuf.numRecs -= numberOfAttributesDeleted;
     RelCacheTable::setRelCatEntry(ATTRCAT_RELID, &relCatBuf);
+
+    return SUCCESS;
+}
+
+// Stage-9 :
+
+// helper function for Algebra::project()
+// which actually performs projection
+int BlockAccess::project(int relId, Attribute *record) {
+    RecId prevRecId;
+    int ret = RelCacheTable::getSearchIndex(relId, &prevRecId);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    int block, slot;
+
+    // if the current search index record is invalid(i.e. = {-1, -1})
+    // (this only happens when the caller reset the search index)
+    if (prevRecId.block == -1 && prevRecId.slot == -1) {
+        // (new project operation. start from beginning)
+        RelCatEntry relCatBuf;
+        RelCacheTable::getRelCatEntry(relId, &relCatBuf);
+
+        block = relCatBuf.firstBlk;
+        slot = 0;
+    } else {
+        // (a project/search operation is already in progress)
+        block = prevRecId.block;
+        slot = prevRecId.slot + 1;
+    }
+
+    while (block != -1) {
+        RecBuffer blockObj(block);
+        HeadInfo header;
+        blockObj.getHeader(&header);
+        unsigned char slotMap[header.numSlots];
+        blockObj.getSlotMap(slotMap);
+
+        if (slot >= header.numSlots) {
+            block = header.rblock;
+            slot = 0;
+        } else if (slotMap[slot] == SLOT_UNOCCUPIED) {
+            slot++;
+        } else {
+            break;
+        }
+    }
+
+    if (block == -1) {
+        return E_NOTFOUND;
+    }
+
+    RecId nextRecId{block, slot};
+    RelCacheTable::setSearchIndex(relId, &nextRecId);
+
+    RecBuffer blockObj(block);
+    blockObj.getRecord(record, slot);
 
     return SUCCESS;
 }

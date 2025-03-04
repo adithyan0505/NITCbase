@@ -83,7 +83,7 @@ int StaticBuffer::getBufferNum(int blockNum) {
     }
 
     for (int i = 0; i < BUFFER_CAPACITY; i++) {
-        if (metainfo[i].blockNum == blockNum) {
+        if (!metainfo[i].free && metainfo[i].blockNum == blockNum) {
             return i;
         }
     }
