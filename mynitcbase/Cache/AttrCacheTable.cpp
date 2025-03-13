@@ -2,21 +2,21 @@
 #include <cstring>
 
 // Stage-3 :
-AttrCacheEntry* AttrCacheTable::attrCache[MAX_OPEN];
+AttrCacheEntry *AttrCacheTable::attrCache[MAX_OPEN];
 
 /* returns the attrOffset-th attribute for the relation corresponding to relId
 NOTE: this function expects the caller to allocate memory for `*attrCatBuf`
 */
-int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry *attrCatBuf){
-    if(relId < 0 || relId >= MAX_OPEN){
+int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry *attrCatBuf) {
+    if (relId < 0 || relId >= MAX_OPEN) {
         return E_OUTOFBOUND;
     }
-    if(attrCache[relId] == nullptr){
+    if (attrCache[relId] == nullptr) {
         return E_RELNOTOPEN;
     }
     // traverse the linked list of attribute cache entries
-    for(AttrCacheEntry* entry = attrCache[relId]; entry != nullptr; entry = entry->next){
-        if(entry->attrCatEntry.offset == attrOffset){
+    for (AttrCacheEntry *entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
+        if (entry->attrCatEntry.offset == attrOffset) {
             *attrCatBuf = entry->attrCatEntry;
             return SUCCESS;
         }
@@ -28,9 +28,9 @@ int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry *att
     We get the record as Attribute[] from the BlockBuffer.getRecord() function.
     This function will convert that to a struct AttrCatEntry type.
 */
-void AttrCacheTable::recordToAttrCatEntry(union Attribute record[ATTRCAT_NO_ATTRS],AttrCatEntry *attrCatEntry){
-    strcpy(attrCatEntry->attrName,record[ATTRCAT_ATTR_NAME_INDEX].sVal);
-    strcpy(attrCatEntry->relName,record[ATTRCAT_REL_NAME_INDEX].sVal);
+void AttrCacheTable::recordToAttrCatEntry(union Attribute record[ATTRCAT_NO_ATTRS], AttrCatEntry *attrCatEntry) {
+    strcpy(attrCatEntry->attrName, record[ATTRCAT_ATTR_NAME_INDEX].sVal);
+    strcpy(attrCatEntry->relName, record[ATTRCAT_REL_NAME_INDEX].sVal);
     attrCatEntry->attrType = record[ATTRCAT_ATTR_TYPE_INDEX].nVal;
     attrCatEntry->offset = record[ATTRCAT_OFFSET_INDEX].nVal;
     attrCatEntry->primaryFlag = record[ATTRCAT_PRIMARY_FLAG_INDEX].nVal;
@@ -38,18 +38,94 @@ void AttrCacheTable::recordToAttrCatEntry(union Attribute record[ATTRCAT_NO_ATTR
 }
 
 // Stage-4 :
-int AttrCacheTable::getAttrCatEntry(int relId, char attrName[ATTR_SIZE], AttrCatEntry *attrCatBuf){
-    if(relId < 0 || relId >= MAX_OPEN){
+int AttrCacheTable::getAttrCatEntry(int relId, char attrName[ATTR_SIZE], AttrCatEntry *attrCatBuf) {
+    if (relId < 0 || relId >= MAX_OPEN) {
         return E_OUTOFBOUND;
     }
-    if(attrCache[relId] == nullptr){
+    if (attrCache[relId] == nullptr) {
         return E_RELNOTOPEN;
     }
-    for(AttrCacheEntry* entry = attrCache[relId]; entry != nullptr; entry = entry->next){
-        if(strcmp(entry->attrCatEntry.attrName, attrName) == 0){
+    for (AttrCacheEntry *entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
+        if (strcmp(entry->attrCatEntry.attrName, attrName) == 0) {
             *attrCatBuf = entry->attrCatEntry;
             return SUCCESS;
         }
     }
     return E_ATTRNOTEXIST;
+}
+
+// Stage-10 :
+
+int AttrCacheTable::getSearchIndex(int relId, int attrOffset, IndexId *searchIndex) {
+    if (relId < 0 || relId >= MAX_OPEN) {
+        return E_OUTOFBOUND;
+    }
+    if (attrCache[relId] == nullptr) {
+        return E_RELNOTOPEN;
+    }
+    for (AttrCacheEntry *entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
+        if (entry->attrCatEntry.offset == attrOffset) {
+            *searchIndex = entry->searchIndex;
+            return SUCCESS;
+        }
+    }
+    return E_ATTRNOTEXIST;
+}
+
+int AttrCacheTable::getSearchIndex(int relId, char *attrName, IndexId *searchIndex) {
+    if (relId < 0 || relId >= MAX_OPEN) {
+        return E_OUTOFBOUND;
+    }
+    if (attrCache[relId] == nullptr) {
+        return E_RELNOTOPEN;
+    }
+    for (AttrCacheEntry *entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
+        if (strcmp(entry->attrCatEntry.attrName, attrName) == 0) {
+            *searchIndex = entry->searchIndex;
+            return SUCCESS;
+        }
+    }
+    return E_ATTRNOTEXIST;
+}
+
+int AttrCacheTable::setSearchIndex(int relId, char *attrName, IndexId *searchIndex) {
+    if (relId < 0 || relId >= MAX_OPEN) {
+        return E_OUTOFBOUND;
+    }
+    if (attrCache[relId] == nullptr) {
+        return E_RELNOTOPEN;
+    }
+    for (AttrCacheEntry *entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
+        if (strcmp(entry->attrCatEntry.attrName, attrName) == 0) {
+            entry->searchIndex = *searchIndex;
+            return SUCCESS;
+        }
+    }
+    return E_ATTRNOTEXIST;
+}
+
+int AttrCacheTable::setSearchIndex(int relId, int attrOffset, IndexId *searchIndex) {
+    if (relId < 0 || relId >= MAX_OPEN) {
+        return E_OUTOFBOUND;
+    }
+    if (attrCache[relId] == nullptr) {
+        return E_RELNOTOPEN;
+    }
+    for (AttrCacheEntry *entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
+        if (entry->attrCatEntry.offset == attrOffset) {
+            entry->searchIndex = *searchIndex;
+            return SUCCESS;
+        }
+    }
+    return E_ATTRNOTEXIST;
+}
+
+int AttrCacheTable::resetSearchIndex(int relId, int attrOffset) {
+    IndexId searchIndex = IndexId{-1, -1};
+    return AttrCacheTable::setSearchIndex(relId, attrOffset, &searchIndex);
+}
+
+int AttrCacheTable::resetSearchIndex(int relId, char *attrName) {
+    IndexId searchIndex = IndexId{-1, -1};
+    return AttrCacheTable::setSearchIndex(relId, attrName, &searchIndex);
 }

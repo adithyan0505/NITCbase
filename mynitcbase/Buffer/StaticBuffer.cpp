@@ -6,6 +6,10 @@ unsigned char StaticBuffer::blocks[BUFFER_CAPACITY][BLOCK_SIZE];
 struct BufferMetaInfo StaticBuffer::metainfo[BUFFER_CAPACITY];
 unsigned char StaticBuffer::blockAllocMap[DISK_BLOCKS];
 
+// modification to store number of comparisions
+// (to be initialised before use)
+int StaticBuffer::compCount;
+
 StaticBuffer::StaticBuffer() {
     // copying BMAP from disk to memory
     for (int i = 0; i <= 3; i++) {
@@ -98,4 +102,16 @@ int StaticBuffer::setDirtyBit(int blockNum) {
     }
     metainfo[bufferNum].dirty = true; // bufferNum is valid hence, setting dirty bit
     return SUCCESS;
+}
+
+// Stage-10 :
+int StaticBuffer::getStaticBlockType(int blockNum) {
+    // Returns the block type of the block corresponding to the input block number.
+    // This function is used to find the block type without the creation of a block object.
+    if (blockNum < 0 || blockNum >= DISK_BLOCKS) {
+        return E_OUTOFBOUND;
+    }
+
+    int type = (int)StaticBuffer::blockAllocMap[blockNum];
+    return type;
 }
