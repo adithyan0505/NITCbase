@@ -194,7 +194,7 @@ int BlockAccess::insert(int relId, union Attribute *record) {
                 break;
             }
         }
-        if(rec_id.block != -1 && rec_id.slot != -1) {
+        if (rec_id.block != -1 && rec_id.slot != -1) {
             break;
         }
         prevBlockNum = blockNum;
@@ -270,7 +270,19 @@ int BlockAccess::insert(int relId, union Attribute *record) {
 // this function will copy the result of the search to the `record` argument
 int BlockAccess::search(int relId, Attribute *record, char *attrName, Attribute attrVal, int op) {
     RecId recId;
-    recId = BlockAccess::linearSearch(relId, attrName, attrVal, op);
+
+    AttrCatEntry attrCatEntry;
+    int ret = AttrCacheTable::getAttrCatEntry(relId, attrName, &attrCatEntry);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+    int rootBlock = attrCatEntry.rootBlock;
+
+    if (rootBlock == -1) {
+        recId = BlockAccess::linearSearch(relId, attrName, attrVal, op);
+    } else {
+        recId = BPlusTree::bPlusSearch(relId, attrName, attrVal, op);
+    }
 
     if (recId.block == -1 && recId.slot == -1) {
         return E_NOTFOUND;

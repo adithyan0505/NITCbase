@@ -30,6 +30,8 @@ class StaticBuffer {
   static int setDirtyBit(int blockNum);
   StaticBuffer();
   ~StaticBuffer();
+
+  static int compCount; // To store number of comparisons performed (stage-10)
 };
 
 #endif  // NITCBASE_STATICBUFFER_H
