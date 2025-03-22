@@ -259,9 +259,9 @@ int OpenRelTable::closeRel(int relId) {
         return E_RELNOTOPEN;
     }
 
-    // if cache was modified - write back relCatEntry as a record
+    // if relation cache was modified (stage-7+) - write back relCatEntry as a record
     // to Relation Catalog Block in buffer
-    if (RelCacheTable::relCache[relId]->dirty == true) {
+    if (RelCacheTable::relCache[relId]->dirty) {
         RelCatEntry relCatBuf;
         RelCacheTable::getRelCatEntry(relId, &relCatBuf);
 
@@ -271,6 +271,22 @@ int OpenRelTable::closeRel(int relId) {
         RecBuffer relCatBlock(RelCacheTable::relCache[relId]->recId.block);
         relCatBlock.setRecord(record, RelCacheTable::relCache[relId]->recId.slot);
     }
+
+    // if attribute cache was modified (stage-11, rootBlock)
+    // write back attrCatEntry as record to Attribute Catalog
+    for(AttrCacheEntry *entry=AttrCacheTable::attrCache[relId]; entry!=nullptr; entry=entry->next) {
+        if(entry->dirty) {
+            AttrCatEntry attrCatEntry;
+            attrCatEntry = entry->attrCatEntry;
+
+            Attribute record[ATTRCAT_NO_ATTRS];
+            AttrCacheTable::attrCatEntryToRecord(&attrCatEntry, record);
+
+            RecBuffer attrCatBlock(entry->recId.block);
+            attrCatBlock.setRecord(record, entry->recId.slot);
+        }
+    }
+
     // Releasing the Relation Cache entry of the relation
     free(RelCacheTable::relCache[relId]);
     RelCacheTable::relCache[relId] = nullptr;

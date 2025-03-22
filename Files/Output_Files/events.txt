@@ -1,0 +1,247 @@
+----- B+ TREE BLOCKS -----
+BLOCK 7078
+Block Type: IND_INTERNAL
+Parent Block: -1
+No of entries: 5
+lchild: 7076, key_val: 32.00, rchild: 7077
+lchild: 7077, key_val: 64.00, rchild: 7079
+lchild: 7079, key_val: 96.00, rchild: 7080
+lchild: 7080, key_val: 128.00, rchild: 7081
+lchild: 7081, key_val: 160.00, rchild: 7082
+---------
+BLOCK 7076
+Block Type: IND_LEAF
+Parent Block: 7078
+No of entries: 32
+left node: -1, right node: 7077
+key_val: 1.00
+key_val: 2.00
+key_val: 3.00
+key_val: 4.00
+key_val: 5.00
+key_val: 6.00
+key_val: 7.00
+key_val: 8.00
+key_val: 9.00
+key_val: 10.00
+key_val: 11.00
+key_val: 12.00
+key_val: 13.00
+key_val: 14.00
+key_val: 15.00
+key_val: 16.00
+key_val: 17.00
+key_val: 18.00
+key_val: 19.00
+key_val: 20.00
+key_val: 21.00
+key_val: 22.00
+key_val: 23.00
+key_val: 24.00
+key_val: 25.00
+key_val: 26.00
+key_val: 27.00
+key_val: 28.00
+key_val: 29.00
+key_val: 30.00
+key_val: 31.00
+key_val: 32.00
+---------
+BLOCK 7077
+Block Type: IND_LEAF
+Parent Block: 7078
+No of entries: 32
+left node: 7076, right node: 7079
+key_val: 33.00
+key_val: 34.00
+key_val: 35.00
+key_val: 36.00
+key_val: 37.00
+key_val: 38.00
+key_val: 39.00
+key_val: 40.00
+key_val: 41.00
+key_val: 42.00
+key_val: 43.00
+key_val: 44.00
+key_val: 45.00
+key_val: 46.00
+key_val: 47.00
+key_val: 48.00
+key_val: 49.00
+key_val: 50.00
+key_val: 51.00
+key_val: 52.00
+key_val: 53.00
+key_val: 54.00
+key_val: 55.00
+key_val: 56.00
+key_val: 57.00
+key_val: 58.00
+key_val: 59.00
+key_val: 60.00
+key_val: 61.00
+key_val: 62.00
+key_val: 63.00
+key_val: 64.00
+---------
+BLOCK 7079
+Block Type: IND_LEAF
+Parent Block: 7078
+No of entries: 32
+left node: 7077, right node: 7080
+key_val: 65.00
+key_val: 66.00
+key_val: 67.00
+key_val: 68.00
+key_val: 69.00
+key_val: 70.00
+key_val: 71.00
+key_val: 72.00
+key_val: 73.00
+key_val: 74.00
+key_val: 75.00
+key_val: 76.00
+key_val: 77.00
+key_val: 78.00
+key_val: 79.00
+key_val: 80.00
+key_val: 81.00
+key_val: 82.00
+key_val: 83.00
+key_val: 84.00
+key_val: 85.00
+key_val: 86.00
+key_val: 87.00
+key_val: 88.00
+key_val: 89.00
+key_val: 90.00
+key_val: 91.00
+key_val: 92.00
+key_val: 93.00
+key_val: 94.00
+key_val: 95.00
+key_val: 96.00
+---------
+BLOCK 7080
+Block Type: IND_LEAF
+Parent Block: 7078
+No of entries: 32
+left node: 7079, right node: 7081
+key_val: 97.00
+key_val: 98.00
+key_val: 99.00
+key_val: 100.00
+key_val: 101.00
+key_val: 102.00
+key_val: 103.00
+key_val: 104.00
+key_val: 105.00
+key_val: 106.00
+key_val: 107.00
+key_val: 108.00
+key_val: 109.00
+key_val: 110.00
+key_val: 111.00
+key_val: 112.00
+key_val: 113.00
+key_val: 114.00
+key_val: 115.00
+key_val: 116.00
+key_val: 117.00
+key_val: 118.00
+key_val: 119.00
+key_val: 120.00
+key_val: 121.00
+key_val: 122.00
+key_val: 123.00
+key_val: 124.00
+key_val: 125.00
+key_val: 126.00
+key_val: 127.00
+key_val: 128.00
+---------
+BLOCK 7081
+Block Type: IND_LEAF
+Parent Block: 7078
+No of entries: 32
+left node: 7080, right node: 7082
+key_val: 129.00
+key_val: 130.00
+key_val: 131.00
+key_val: 132.00
+key_val: 133.00
+key_val: 134.00
+key_val: 135.00
+key_val: 136.00
+key_val: 137.00
+key_val: 138.00
+key_val: 139.00
+key_val: 140.00
+key_val: 141.00
+key_val: 142.00
+key_val: 143.00
+key_val: 144.00
+key_val: 145.00
+key_val: 146.00
+key_val: 147.00
+key_val: 148.00
+key_val: 149.00
+key_val: 150.00
+key_val: 151.00
+key_val: 152.00
+key_val: 153.00
+key_val: 154.00
+key_val: 155.00
+key_val: 156.00
+key_val: 157.00
+key_val: 158.00
+key_val: 159.00
+key_val: 160.00
+---------
+BLOCK 7082
+Block Type: IND_LEAF
+Parent Block: 7078
+No of entries: 40
+left node: 7081, right node: -1
+key_val: 161.00
+key_val: 162.00
+key_val: 163.00
+key_val: 164.00
+key_val: 165.00
+key_val: 166.00
+key_val: 167.00
+key_val: 168.00
+key_val: 169.00
+key_val: 170.00
+key_val: 171.00
+key_val: 172.00
+key_val: 173.00
+key_val: 174.00
+key_val: 175.00
+key_val: 176.00
+key_val: 177.00
+key_val: 178.00
+key_val: 179.00
+key_val: 180.00
+key_val: 181.00
+key_val: 182.00
+key_val: 183.00
+key_val: 184.00
+key_val: 185.00
+key_val: 186.00
+key_val: 187.00
+key_val: 188.00
+key_val: 189.00
+key_val: 190.00
+key_val: 191.00
+key_val: 192.00
+key_val: 193.00
+key_val: 194.00
+key_val: 195.00
+key_val: 196.00
+key_val: 197.00
+key_val: 198.00
+key_val: 199.00
+key_val: 200.00
+---------

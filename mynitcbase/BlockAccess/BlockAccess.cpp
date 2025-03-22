@@ -262,7 +262,24 @@ int BlockAccess::insert(int relId, union Attribute *record) {
     RelCacheTable::setRelCatEntry(relId, &relCatBuf);
     // relation cache write-back to relation catalog happens in closeRel()
 
-    return SUCCESS;
+    // B+ Tree insertions :
+    int flag = SUCCESS;
+    
+    for(int i = 0;i < numofAttributes;i++) {
+        AttrCatEntry attrCatEntry;
+        AttrCacheTable::getAttrCatEntry(relId, i, &attrCatEntry);
+
+        if(attrCatEntry.rootBlock != -1) {
+            // Index exists on this attribute (with offset i)
+            int retVal = BPlusTree::bPlusInsert(relId, attrCatEntry.attrName, record[i], rec_id);
+
+            if(retVal == E_DISKFULL) {
+                // Index for this attribute has been destroyed 
+                flag = E_INDEX_BLOCKS_RELEASED;
+            }
+        }
+    }
+    return flag;
 }
 
 // Stage-8 :
@@ -374,6 +391,10 @@ int BlockAccess::deleteRelation(char *relName) {
             // attribute catalog will never be empty
             // no need to handle case of linked list becoming empty
             attrCatBlock.releaseBlock();
+        }
+
+        if(rootBlock != -1) {
+            BPlusTree::bPlusDestroy(rootBlock);
         }
     }
 
