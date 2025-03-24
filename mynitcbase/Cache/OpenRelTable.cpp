@@ -40,6 +40,7 @@ OpenRelTable::OpenRelTable() {
     RelCacheTable::recordToRelCatEntry(relCatRecord, &relCacheEntry.relCatEntry);
     relCacheEntry.recId.block = RELCAT_BLOCK;
     relCacheEntry.recId.slot = RELCAT_SLOTNUM_FOR_ATTRCAT;
+    relCacheEntry.dirty = false;
 
     // allocate this on the heap because we want it to persist outside this
     // function
@@ -64,6 +65,8 @@ OpenRelTable::OpenRelTable() {
                                              &attrCacheEntry.attrCatEntry);
         attrCacheEntry.recId.block = ATTRCAT_BLOCK;
         attrCacheEntry.recId.slot = i;
+        attrCacheEntry.dirty = false;
+
         if (prevAttr != nullptr) {
             prevAttr->next = (AttrCacheEntry *)malloc(sizeof(AttrCacheEntry));
             prevAttr = prevAttr->next;
@@ -211,7 +214,8 @@ int OpenRelTable::openRel(char *relName) {
     RelCacheEntry relCacheEntry;
     RelCacheTable::recordToRelCatEntry(record, &relCacheEntry.relCatEntry);
     relCacheEntry.recId = relcatRecId;
-    // relCacheEntry.searchIndex = {-1,-1} ??
+    relCacheEntry.dirty = false;
+    
     RelCacheTable::relCache[relId] = (RelCacheEntry *)malloc(sizeof(RelCacheEntry));
     *(RelCacheTable::relCache[relId]) = relCacheEntry;
 
@@ -229,6 +233,7 @@ int OpenRelTable::openRel(char *relName) {
         AttrCacheTable::recordToAttrCatEntry(record, &attrCacheEntry.attrCatEntry);
         attrCacheEntry.recId.block = attrcatRecId.block;
         attrCacheEntry.recId.slot = attrcatRecId.slot;
+        attrCacheEntry.dirty = false;
 
         if (prevAttr == nullptr) {
             AttrCacheTable::attrCache[relId] = (AttrCacheEntry *)malloc(sizeof(AttrCacheEntry));
@@ -265,7 +270,7 @@ int OpenRelTable::closeRel(int relId) {
         RelCatEntry relCatBuf;
         RelCacheTable::getRelCatEntry(relId, &relCatBuf);
 
-        union Attribute record[relCatBuf.numAttrs];
+        union Attribute record[RELCAT_NO_ATTRS];
         RelCacheTable::relCatEntryToRecord(&relCatBuf, record);
 
         RecBuffer relCatBlock(RelCacheTable::relCache[relId]->recId.block);
